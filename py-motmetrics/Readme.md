@@ -19,7 +19,7 @@ In particular **py-motmetrics** supports `CLEAR-MOT`[[1,2]](#References) metrics
 
 ### Features at a glance
 - *Variety of metrics* <br/>
-Provides MOTA, MOTP, track quality measures, global ID measures and more. The results are [comparable](#MOTChallengeCompatibility) with the popular [MOTChallenge][MOTChallenge] benchmarks.
+Provides MOTA, MOTP, track quality measures, global ID measures and more. The results are [comparable](#MOTChallengeCompatibility) with the popular [MOTChallenge][MOTChallenge] benchmarks [(*1)](#asterixcompare).
 - *Distance agnostic* <br/>
 Supports Euclidean, Intersection over Union and other distances measures.
 - *Complete event history* <br/>
@@ -76,7 +76,7 @@ id_global_assignment| `dict` ID measures: Global min-cost assignment for ID meas
 <a name="MOTChallengeCompatibility"></a>
 ### MOTChallenge compatibility
 
-**py-motmetrics** produces results compatible with popular [MOTChallenge][MOTChallenge] benchmarks. Below are two results taken from MOTChallenge [Matlab devkit][devkit] corresponding to the results of the CEM tracker on the training set of the 2015 MOT 2DMark.
+**py-motmetrics** produces results compatible with popular [MOTChallenge][MOTChallenge] benchmarks [(*1)](#asterixcompare). Below are two results taken from MOTChallenge [Matlab devkit][devkit] corresponding to the results of the CEM tracker on the training set of the 2015 MOT 2DMark.
 
 ```
 
@@ -98,7 +98,7 @@ TUD-Campus     55.8% 73.0% 45.1% 58.2% 94.1%  8  1  6  1 13 150   7   7 52.6% 0.
 TUD-Stadtmitte 64.5% 82.0% 53.1% 60.9% 94.0% 10  5  4  1 45 452   7   6 56.4% 0.346
 ```
 
-Besides naming conventions, the only obvious differences are
+<a name="asterixcompare"></a>(*1) Besides naming conventions, the only obvious differences are
 - Metric `FAR` is missing. This metric is given implicitly and can be recovered by `FalsePos / Frames * 100`.
 - Metric `MOTP` seems to be off. To convert compute `(1 - MOTP) * 100`. [MOTChallenge][MOTChallenge] benchmarks compute `MOTP` as percentage, while **py-motmetrics** sticks to the original definition of average distance over number of assigned objects [[1]](#References).
 
@@ -167,16 +167,16 @@ acc = mm.MOTAccumulator(auto_id=True)
 # Call update once for per frame. For now, assume distances between
 # frame objects / hypotheses are given.
 acc.update(
-    ['a', 'b'],                 # Ground truth objects in this frame
+    [1, 2],                     # Ground truth objects in this frame
     [1, 2, 3],                  # Detector hypotheses in this frame
     [
-        [0.1, np.nan, 0.3],     # Distances from object 'a' to hypotheses 1, 2, 3
-        [0.5,  0.2,   0.3]      # Distances from object 'b' to hypotheses 1, 2, 3
+        [0.1, np.nan, 0.3],     # Distances from object 1 to hypotheses 1, 2, 3
+        [0.5,  0.2,   0.3]      # Distances from object 2 to hypotheses 1, 2, 3
     ]
 )
 ```
 
-The code above updates an event accumulator with data from a single frame. Here we assume that pairwise object / hypothesis distances have already been computed. Note `np.nan` inside the distance matrix. It signals that `a` cannot be paired with hypothesis `2`. To inspect the current event history simple print the events associated with the accumulator.
+The code above updates an event accumulator with data from a single frame. Here we assume that pairwise object / hypothesis distances have already been computed. Note `np.nan` inside the distance matrix. It signals that object `1` cannot be paired with hypothesis `2`. To inspect the current event history simple print the events associated with the accumulator.
 
 ```python
 print(acc.events) # a pandas DataFrame containing all events
@@ -184,14 +184,14 @@ print(acc.events) # a pandas DataFrame containing all events
 """
                 Type  OId HId    D
 FrameId Event
-0       0        RAW    a   1  0.1
-        1        RAW    a   2  NaN
-        2        RAW    a   3  0.3
-        3        RAW    b   1  0.5
-        4        RAW    b   2  0.2
-        5        RAW    b   3  0.3
-        6      MATCH    a   1  0.1
-        7      MATCH    b   2  0.2
+0       0        RAW    1   1  0.1
+        1        RAW    1   2  NaN
+        2        RAW    1   3  0.3
+        3        RAW    2   1  0.5
+        4        RAW    2   2  0.2
+        5        RAW    2   3  0.3
+        6      MATCH    1   1  0.1
+        7      MATCH    2   2  0.2
         8         FP  NaN   3  NaN
 """
 ```
@@ -204,19 +204,19 @@ print(acc.mot_events) # a pandas DataFrame containing MOT only events
 """
                 Type  OId HId    D
 FrameId Event
-0       6      MATCH    a   1  0.1
-        7      MATCH    b   2  0.2
+0       6      MATCH    1   1  0.1
+        7      MATCH    2   2  0.2
         8         FP  NaN   3  NaN
 """
 ```
 
-Meaning object `a` was matched to hypothesis `1` with distance 0.1. Similarily, `b` was matched to `2` with distance 0.2. Hypothesis `3` could not be matched to any remaining object and generated a false positive (FP). Possible assignments are computed by minimizing the total assignment distance (Kuhn-Munkres algorithm).
+Meaning object `1` was matched to hypothesis `1` with distance 0.1. Similarily, object `2` was matched to hypothesis `2` with distance 0.2. Hypothesis `3` could not be matched to any remaining object and generated a false positive (FP). Possible assignments are computed by minimizing the total assignment distance (Kuhn-Munkres algorithm).
 
 Continuing from above
 
 ```python
 frameid = acc.update(
-    ['a', 'b'],
+    [1, 2],
     [1],
     [
         [0.2],
@@ -228,16 +228,16 @@ print(acc.mot_events.loc[frameid])
 """
         Type OId  HId    D
 Event
-2      MATCH   a    1  0.2
-3       MISS   b  NaN  NaN
+2      MATCH   1    1  0.2
+3       MISS   2  NaN  NaN
 """
 ```
 
-While `a` was matched, `b` couldn't be matched because no hypotheses are left to pair with.
+While object `1` was matched, object `2` couldn't be matched because no hypotheses are left to pair with.
 
 ```python
 frameid = acc.update(
-    ['a', 'b'],
+    [1, 2],
     [1, 3],
     [
         [0.6, 0.2],
@@ -249,12 +249,12 @@ print(acc.mot_events.loc[frameid])
 """
          Type OId HId    D
 Event
-4       MATCH   a   1  0.6
-5      SWITCH   b   3  0.6
+4       MATCH   1   1  0.6
+5      SWITCH   2   3  0.6
 """
 ```
 
-`b` is now tracked by hypothesis `3` leading to a track switch. Note, although a pairing `(a, 3)` with cost less than 0.6 is possible, the algorithm prefers prefers to continue track assignments from past frames which is a property of MOT metrics.
+Object `2` is now tracked by hypothesis `3` leading to a track switch. Note, although a pairing `(1, 3)` with cost less than 0.6 is possible, the algorithm prefers prefers to continue track assignments from past frames which is a property of MOT metrics.
 
 #### Computing metrics
 Once the accumulator has been populated you can compute and display metrics. Continuing the example from above
