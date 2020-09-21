@@ -7,8 +7,57 @@ import torch.nn.functional as F
 from torch.autograd import Variable
 import numpy as np
 
-#import matplotlib.pyplot as plt
-#import matplotlib.patches as patches
+from torchvision import datasets, transforms
+
+
+
+
+def detect_image(img, model_info, log=False):
+    """ 
+    Basic function that will return detections for a specified image. 
+    Note that it requires a Pillow image as input. The actual detection 
+    is in the last 4 lines.
+    """
+
+    # Extrack the information about the model contained in the list
+    model, img_size, conf_thres, nms_thres, Tensor = model_info
+
+    # Scale and pad image
+    ratio = min(img_size/img.size[0], img_size/img.size[1])
+    imw = round(img.size[0] * ratio)
+    imh = round(img.size[1] * ratio)
+    img_transforms = transforms.Compose([ transforms.Resize((imh, imw)),
+        transforms.Pad((max(int((imh-imw)/2),0), max(int((imw-imh)/2),0), max(int((imh-imw)/2),0), max(int((imw-imh)/2),0)),
+                       (128,128,128)),
+        transforms.ToTensor(),
+        ])
+
+    # Convert image to Tensor
+    image_tensor = img_transforms(img).float()
+    image_tensor = image_tensor.unsqueeze_(0)
+    input_img = Variable(image_tensor.type(Tensor))
+
+    # Run inference on the model and get detections (the model returns many detections, 
+    # which will be filtered by the 'non_max_suppression' function)
+    with torch.no_grad():
+        detections = model(input_img)
+        detections = non_max_suppression(detections, 80, conf_thres, nms_thres)
+
+        if log==True:
+            if detections[0] is None: 
+                num_of_detects = 0
+            else:
+                num_of_detects = len(detections[0])
+            print("\nFinal number of detected objetcs: ", num_of_detects)
+
+    return detections[0]
+
+
+
+
+
+#___________________________________________________________________________________
+
 
 
 def load_classes(path):
@@ -20,6 +69,7 @@ def load_classes(path):
     return names
 
 
+
 def weights_init_normal(m):
     classname = m.__class__.__name__
     if classname.find("Conv") != -1:
@@ -27,6 +77,7 @@ def weights_init_normal(m):
     elif classname.find("BatchNorm2d") != -1:
         torch.nn.init.normal_(m.weight.data, 1.0, 0.02)
         torch.nn.init.constant_(m.bias.data, 0.0)
+
 
 
 def compute_ap(recall, precision):
@@ -55,6 +106,7 @@ def compute_ap(recall, precision):
     # and sum (\Delta recall) * prec
     ap = np.sum((mrec[i + 1] - mrec[i]) * mpre[i + 1])
     return ap
+
 
 
 def bbox_iou(box1, box2, x1y1x2y2=True):
@@ -88,6 +140,8 @@ def bbox_iou(box1, box2, x1y1x2y2=True):
     iou = inter_area / (b1_area + b2_area - inter_area + 1e-16)
 
     return iou
+
+
 
 
 def bbox_iou_numpy(box1, box2):
@@ -124,11 +178,13 @@ def bbox_iou_numpy(box1, box2):
     return intersection / ua
 
 
+
+
 def non_max_suppression(prediction, num_classes, conf_thres=0.5, nms_thres=0.4):
     """
     Removes detections with lower object confidence score than 'conf_thres' and performs
     Non-Maximum Suppression to further filter detections.
-    Returns detections with shape:
+    Builds boxes for the remaining detections and returns them with shape:
         (x1, y1, x2, y2, object_conf, class_score, class_pred)
     """
 
@@ -182,6 +238,8 @@ def non_max_suppression(prediction, num_classes, conf_thres=0.5, nms_thres=0.4):
             )
 
     return output
+
+
 
 
 def build_targets(
@@ -251,6 +309,7 @@ def build_targets(
                 nCorrect += 1
 
     return nGT, nCorrect, mask, conf_mask, tx, ty, tw, th, tconf, tcls
+
 
 
 def to_categorical(y, num_classes):
