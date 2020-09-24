@@ -16,8 +16,16 @@ import models
 
 
 
-# Load the image that will be analyzed
-img_path = "images/venice.jpg"
+# Get the image name from the input
+if len(sys.argv) == 1 :
+    print('\n  --- Performing inference on "blueangels.jpg" ---\n')
+    img_path = "images/blueangels.jpg"
+elif len(sys.argv) == 2:
+    print('\n  --- Performing inference on "'+str(sys.argv[1])+'" ---\n')
+    img_path = "images/"+str(sys.argv[1])
+else:
+    print ('\n  --- TOO MANY ARGUMENTS: performing inference on "blueangels.jpg" --- \n')
+    img_path = "images/blueangels.jpg"
 
 
 

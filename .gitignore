@@ -53,3 +53,7 @@ dist/
 
 
 pytorch_objectdetecttrack/config/yolov3.weights
+
+pytorch_objectdetecttrack/__pycache__/
+
+pytorch_objectdetecttrack/utilities/__pycache__/

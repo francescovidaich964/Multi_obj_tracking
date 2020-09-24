@@ -23,7 +23,7 @@ if [ -n "$2" ]; then
 	fi
 fi
 
-# If build_flag is true, solve MOT task over the 
+# If build_flag is True, solve MOT task over the 
 # dataset in ./data and build ground truth video
 if [ "$1" == "True" ]; then
 	cd pytorch_objectdetecttrack
