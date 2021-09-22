@@ -1,5 +1,5 @@
 # PyTorch Object Detection and Tracking
-Object detection in images, and tracking across video frames
+Object detection in images, and tracking across video frames (original code from [cfotache](https://github.com/cfotache/pytorch_objectdetecttrack))
 
 References:
 1. YOLOv3: https://pjreddie.com/darknet/yolo/
