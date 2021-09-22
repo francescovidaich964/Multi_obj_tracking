@@ -1,6 +1,6 @@
 # Multiple Object Detection and Tracking with PyTorch
 
-This is our ([Francesco Vidaich](https://github.com/francescovidaich964), [Stefano Mancone](https://github.com/mango915)) final project for the [Vision and Cognitive Services](http://informatica.math.unipd.it/laureamagistrale/visionandcognitiveservicesen.html) course of our [Pysics of Data](https://www.unipd.it/en/educational-offer/master-s-degrees/school-of-science?tipo=LM&scuola=SC&ordinamento=2018&key=SC2443) degree at the University of Padova.
+This is our ([Francesco Vidaich](https://github.com/francescovidaich964), [Stefano Mancone](https://github.com/mango915)) final project for the [Vision and Cognitive Services](http://informatica.math.unipd.it/laureamagistrale/visionandcognitiveservicesen.html) course of our [Physics of Data](https://www.unipd.it/en/educational-offer/master-s-degrees/school-of-science?tipo=LM&scuola=SC&ordinamento=2018&key=SC2443) degree at the University of Padova.
 Here we implemented a YOLOv3 architecture, trained on the COCO dataset, to solve the problem of Multiple Object Detection and the SORT (Simple Online and realtime Tracking) algorithm that, combined with the previous model, will solve the problem of Multiple Object Tracking.
 We also introduced some metrics to evaluate the how well the model performs.
 
